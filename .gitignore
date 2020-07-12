@@ -1,0 +1,14 @@
+# macos files
+*.DS_Store
+
+# build objects
+*.o
+*.ko
+
+# VSCode files
+*.vscode*
+
+# python
+.cache
+__pycache__
+*.pyc
