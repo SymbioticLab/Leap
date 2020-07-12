@@ -68,6 +68,7 @@ struct sigaltstack;
 union bpf_attr;
 
 #include <linux/types.h>
+#include <linux/mm_types.h>
 #include <linux/aio_abi.h>
 #include <linux/capability.h>
 #include <linux/signal.h>
@@ -79,7 +80,7 @@ union bpf_attr;
 #include <linux/quota.h>
 #include <linux/key.h>
 #include <trace/syscall.h>
-
+#include <linux/rmap.h>
 /*
  * __MAP - apply a macro to syscall arguments
  * __MAP(n, m, t1, a1, t2, a2, ..., tn, an) will expand to
@@ -888,5 +889,9 @@ asmlinkage long sys_execveat(int dfd, const char __user *filename,
 asmlinkage long sys_membarrier(int cmd, int flags);
 
 asmlinkage long sys_mlock2(unsigned long start, size_t len, int flags);
+
+asmlinkage int sys_is_session_create(const char *portal);
+
+asmlinkage int sys_is_request(struct page *page, int is_write);
 
 #endif

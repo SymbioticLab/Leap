@@ -333,6 +333,9 @@
 324	common	membarrier		sys_membarrier
 325	common	mlock2			sys_mlock2
 
+326 	common	is_session_create	sys_is_session_create
+327	common	is_request		sys_is_request
+
 #
 # x32-specific system call numbers start at 512 to avoid cache impact
 # for native 64-bit operation.

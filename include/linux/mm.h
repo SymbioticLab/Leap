@@ -30,6 +30,17 @@ struct user_struct;
 struct writeback_control;
 struct bdi_writeback;
 
+extern void set_process_id(unsigned long pid);
+extern unsigned long get_process_id( void );
+extern void set_custom_prefetch(unsigned long val);
+extern unsigned long get_custom_prefetch( void );
+extern void init_swap_trend(int size);
+extern void swap_info_log(void);
+extern void activate_prefetch_buffer(unsigned long val);
+extern unsigned long get_prefetch_buffer_status( void );
+extern void prefetch_buffer_init(unsigned long _size);
+extern void add_page_to_buffer(swp_entry_t entry);
+
 #ifndef CONFIG_NEED_MULTIPLE_NODES	/* Don't use mapnrs, do it properly */
 extern unsigned long max_mapnr;
 

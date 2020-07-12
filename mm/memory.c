@@ -69,7 +69,7 @@
 #include <asm/tlb.h>
 #include <asm/tlbflush.h>
 #include <asm/pgtable.h>
-
+#include <linux/syscalls.h>
 #include "internal.h"
 
 #if defined(LAST_CPUPID_NOT_IN_PAGE_FLAGS) && !defined(CONFIG_COMPILE_TEST)
@@ -2501,6 +2501,7 @@ static int do_swap_page(struct mm_struct *mm, struct vm_area_struct *vma,
 		goto out;
 
 	entry = pte_to_swp_entry(orig_pte);
+	
 	if (unlikely(non_swap_entry(entry))) {
 		if (is_migration_entry(entry)) {
 			migration_entry_wait(mm, pmd, address);
@@ -2512,8 +2513,12 @@ static int do_swap_page(struct mm_struct *mm, struct vm_area_struct *vma,
 		}
 		goto out;
 	}
+	if ( get_time_keep() != 0)
+		sys_set_swap_in_entry(entry.val, 0);
+
 	delayacct_set_flag(DELAYACCT_PF_SWAPIN);
 	page = lookup_swap_cache(entry);
+
 	if (!page) {
 		page = swapin_readahead(entry,
 					GFP_HIGHUSER_MOVABLE, vma, address);
@@ -2568,7 +2573,6 @@ static int do_swap_page(struct mm_struct *mm, struct vm_area_struct *vma,
 		page = swapcache;
 		goto out_page;
 	}
-
 	if (mem_cgroup_try_charge(page, mm, GFP_KERNEL, &memcg)) {
 		ret = VM_FAULT_OOM;
 		goto out_page;
@@ -2617,9 +2621,10 @@ static int do_swap_page(struct mm_struct *mm, struct vm_area_struct *vma,
 		mem_cgroup_commit_charge(page, memcg, false);
 		lru_cache_add_active_or_unevictable(page, vma);
 	}
-
 	swap_free(entry);
-	if (vm_swap_full() || (vma->vm_flags & VM_LOCKED) || PageMlocked(page))
+	if( get_custom_prefetch() != 0 )
+		try_to_free_swap(page);
+	else if (vm_swap_full() || (vma->vm_flags & VM_LOCKED) || PageMlocked(page))
 		try_to_free_swap(page);
 	unlock_page(page);
 	if (page != swapcache) {
@@ -2644,6 +2649,7 @@ static int do_swap_page(struct mm_struct *mm, struct vm_area_struct *vma,
 
 	/* No need to invalidate - it was non-present before */
 	update_mmu_cache(vma, address, page_table);
+	
 unlock:
 	pte_unmap_unlock(page_table, ptl);
 out:

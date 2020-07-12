@@ -23,6 +23,21 @@
 #include <linux/blkdev.h>
 #include <linux/uio.h>
 #include <asm/pgtable.h>
+#include <linux/syscalls.h>
+unsigned long process_id = 0;
+struct task_struct *task_of_process;
+
+void set_process_id(unsigned long __pid){
+        process_id = __pid;
+//        printk(KERN_INFO "process id at swap_state set to %ld at address %p\n", process_id, &process_id);
+}
+
+unsigned long get_process_id(){
+//        printk(KERN_INFO "process id from swap_state is %ld at address %p\n", process_id, &process_id);
+        return process_id;
+}
+EXPORT_SYMBOL(set_process_id);
+EXPORT_SYMBOL(get_process_id);
 
 static struct bio *get_swap_bio(gfp_t gfp_flags,
 				struct page *page, bio_end_io_t end_io)
@@ -230,16 +245,20 @@ int swap_writepage(struct page *page, struct writeback_control *wbc)
 	int ret = 0;
 
 	if (try_to_free_swap(page)) {
+		printk("swap_writepage: tried to free swap but failed\n");
 		unlock_page(page);
 		goto out;
 	}
-	if (frontswap_store(page) == 0) {
+	if(get_process_id() > 0){ // || (page->mem_cgroup && task_in_mem_cgroup(task_of_process,page->mem_cgroup))){
 		set_page_writeback(page);
-		unlock_page(page);
-		end_page_writeback(page);
-		goto out;
+                unlock_page(page);
+		count_vm_event(PSWPOUT);
+		ret = sys_is_request(page, 1);
+		if (ret != 0)
+			ret = __swap_writepage(page, wbc, end_swap_bio_write);
 	}
-	ret = __swap_writepage(page, wbc, end_swap_bio_write);
+	else 
+		ret = __swap_writepage(page, wbc, end_swap_bio_write);
 out:
 	return ret;
 }
@@ -329,12 +348,15 @@ int swap_readpage(struct page *page)
 
 	VM_BUG_ON_PAGE(!PageLocked(page), page);
 	VM_BUG_ON_PAGE(PageUptodate(page), page);
-	if (frontswap_load(page) == 0) {
-		SetPageUptodate(page);
-		unlock_page(page);
-		goto out;
-	}
 
+	if (get_process_id() > 0) {// || get_process_id()  == current->pid) {
+		ret = sys_is_request(page, 0);
+		if(ret != 0)
+			goto failed_rdma;
+		count_vm_event(PSWPIN);
+		return ret;
+	}
+failed_rdma:
 	if (sis->flags & SWP_FILE) {
 		struct file *swap_file = sis->swap_file;
 		struct address_space *mapping = swap_file->f_mapping;
