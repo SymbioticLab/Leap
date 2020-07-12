@@ -868,9 +868,9 @@ static int client_read_done(struct kernel_cb * cb, struct ib_wc *wc)
 	SetPageUptodate(page);			
 	unlock_page(page);
 
-	if(get_prefetch_buffer_status() != 0){
+	/*if(get_prefetch_buffer_status() != 0){
 		add_page_to_buffer(page_private(page));
-	}
+	}*/
 	
 	ctx->page = NULL;
 //	printk("%s: inserting ctx to free pool\n",__func__);

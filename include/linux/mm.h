@@ -39,7 +39,7 @@ extern void swap_info_log(void);
 extern void activate_prefetch_buffer(unsigned long val);
 extern unsigned long get_prefetch_buffer_status( void );
 extern void prefetch_buffer_init(unsigned long _size);
-extern void add_page_to_buffer(swp_entry_t entry);
+//extern void add_page_to_buffer(swp_entry_t entry);
 
 #ifndef CONFIG_NEED_MULTIPLE_NODES	/* Don't use mapnrs, do it properly */
 extern unsigned long max_mapnr;

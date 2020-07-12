@@ -453,7 +453,7 @@ extern int submit_queues;
 extern int IS_indexes;
 
 int IS_single_chunk_map(struct IS_session *IS_session, int i);
-int IS_transfer_chunk(struct kernel_cb *cb, int cb_index, int chunk_index, struct remote_chunk_ *chunk, unsigned long offset, unsigned long len, int write, struct page *page);
+int IS_transfer_chunk(struct kernel_cb *cb, int cb_index, int chunk_index, struct remote_chunk_g *chunk, unsigned long offset, unsigned long len, int write, struct page *page);
 asmlinkage int sys_is_session_create(const char *portal);
 asmlinkage int sys_is_request(struct page *page, int is_write);
 void IS_session_destroy(struct IS_session *IS_session);

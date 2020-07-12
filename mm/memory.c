@@ -2513,8 +2513,6 @@ static int do_swap_page(struct mm_struct *mm, struct vm_area_struct *vma,
 		}
 		goto out;
 	}
-	if ( get_time_keep() != 0)
-		sys_set_swap_in_entry(entry.val, 0);
 
 	delayacct_set_flag(DELAYACCT_PF_SWAPIN);
 	page = lookup_swap_cache(entry);
